@@ -12,8 +12,8 @@ export class UserController {
 
 	@Get()
 	async getAllUsers(@Query() query: any, @Res() res: Response) {
-		const result = await this.userService.getAllUsers(query);
-		ApiResponse.success(res, result);
+		const result = await this.userService.getAllUsers(query, res);
+		return result
 	}
 
 	@Post()

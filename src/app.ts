@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import {
 	UserController,
 	RootController,
@@ -9,6 +9,7 @@ import {
 import { registerRoutes } from "./utils";
 import "reflect-metadata";
 import { AppDataSource } from "./data-source";
+import { HttpException } from "./exceptions";
 
 const app = express();
 const port = 3000;
@@ -21,6 +22,17 @@ registerRoutes(
 	[UserController, RootController, AuthController, ProjectController, TaskController],
 	"/api/v1"
 );
+
+// Global Error Handler Middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+	const statusCode = err instanceof HttpException ? err.statusCode : 500;
+	const message = err.message || "Internal Server Error";
+	
+	res.status(statusCode).json({
+		error: message,
+		timestamp: new Date().toISOString(),
+	});
+});
 
 AppDataSource.initialize()
 	.then(() => {

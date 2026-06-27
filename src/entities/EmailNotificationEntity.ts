@@ -6,19 +6,19 @@ import { EmailType, EmailStatus } from "../enums";
 
 @Entity({ name: "email_notifications" })
 export class EmailNotificationEntity extends BaseTableEntity {
-	@Column({ name: "task_id" })
-	taskId!: number;
+	@Column({ name: "task_id", nullable: true })
+	taskId!: string | null;
 
-	@ManyToOne(() => TaskEntity)
+	@ManyToOne(() => TaskEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "task_id" })
-	task!: TaskEntity;
+	task!: TaskEntity | null;
 
-	@Column({ name: "recipient_id" })
-	recipientId!: number;
+	@Column({ name: "recipient_id", nullable: true })
+	recipientId!: string | null;
 
-	@ManyToOne(() => UserEntity)
+	@ManyToOne(() => UserEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "recipient_id" })
-	recipient!: UserEntity;
+	recipient!: UserEntity | null;
 
 	@Column({
 		type: "enum",

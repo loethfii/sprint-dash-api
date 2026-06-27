@@ -7,8 +7,8 @@ import {
 } from "typeorm";
 
 export abstract class BaseTableEntity {
-	@PrimaryGeneratedColumn()
-	id!: number;
+	@PrimaryGeneratedColumn("uuid")
+	id!: string;
 
 	@CreateDateColumn({ name: "created_at", default: new Date().toISOString() })
 	createdAt!: string;

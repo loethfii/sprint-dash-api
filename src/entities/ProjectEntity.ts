@@ -21,10 +21,10 @@ export class ProjectEntity extends BaseTableEntity {
 	})
 	priority!: ProjectPriority;
 
-	@Column({ name: "created_by" })
-	createdBy!: number;
+	@Column({ name: "created_by", nullable: true })
+	createdBy!: string | null;
 
-	@ManyToOne(() => UserEntity)
+	@ManyToOne(() => UserEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "created_by" })
-	creator!: UserEntity;
+	creator!: UserEntity | null;
 }

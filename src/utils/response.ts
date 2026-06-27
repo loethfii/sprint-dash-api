@@ -14,10 +14,9 @@ export class ApiResponse {
 	static success<T>(
 		res: Response,
 		data: T,
-		statusCode: number = 200,
 		pagination?: PaginationMeta
 	) {
-		return res.status(statusCode).json({
+		return res.status(200).json({
 			data,
 			...(pagination && { pagination }),
 			timestamp: new Date().toISOString(),

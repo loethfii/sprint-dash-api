@@ -5,19 +5,19 @@ import { ProjectEntity } from "./ProjectEntity";
 
 @Entity({ name: "project_assignments" })
 export class ProjectAssignmentEntity extends BaseTableEntity {
-	@Column({ name: "project_id" })
-	projectId!: number;
+	@Column({ name: "project_id", nullable: true })
+	projectId!: string | null;
 
-	@ManyToOne(() => ProjectEntity)
+	@ManyToOne(() => ProjectEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "project_id" })
-	project!: ProjectEntity;
+	project!: ProjectEntity | null;
 
-	@Column({ name: "manager_id" })
-	managerId!: number;
+	@Column({ name: "manager_id", nullable: true })
+	managerId!: string | null;
 
-	@ManyToOne(() => UserEntity)
+	@ManyToOne(() => UserEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "manager_id" })
-	manager!: UserEntity;
+	manager!: UserEntity | null;
 
 	@Column({ name: "assigned_at", type: "timestamp" })
 	assignedAt!: Date;

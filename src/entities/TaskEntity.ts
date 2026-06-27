@@ -6,19 +6,19 @@ import { TaskStatus, TaskPriority } from "../enums";
 
 @Entity({ name: "tasks" })
 export class TaskEntity extends BaseTableEntity {
-	@Column({ name: "project_id" })
-	projectId!: number;
+	@Column({ name: "project_id", nullable: true })
+	projectId!: string | null;
 
-	@ManyToOne(() => ProjectEntity)
+	@ManyToOne(() => ProjectEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "project_id" })
-	project!: ProjectEntity;
+	project!: ProjectEntity | null;
 
 	@Column({ name: "parent_task_id", nullable: true })
-	parentTaskId?: number;
+	parentTaskId?: string | null;
 
-	@ManyToOne(() => TaskEntity, { nullable: true })
+	@ManyToOne(() => TaskEntity, { onDelete: "SET NULL", onUpdate: "SET NULL", nullable: true })
 	@JoinColumn({ name: "parent_task_id" })
-	parentTask?: TaskEntity;
+	parentTask?: TaskEntity | null;
 
 	@Column({ type: "varchar", length: 255 })
 	title!: string;
@@ -46,10 +46,10 @@ export class TaskEntity extends BaseTableEntity {
 	})
 	priority!: TaskPriority;
 
-	@Column({ name: "created_by" })
-	createdBy!: number;
+	@Column({ name: "created_by", nullable: true })
+	createdBy!: string | null;
 
-	@ManyToOne(() => UserEntity)
+	@ManyToOne(() => UserEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "created_by" })
-	creator!: UserEntity;
+	creator!: UserEntity | null;
 }
