@@ -1,5 +1,4 @@
-import { Controller } from "../decorators/Controller";
-import { Get } from "../decorators/Route";
+import { Controller, Get } from "../decorators";
 import { Request, Response } from "express";
 
 @Controller("/")

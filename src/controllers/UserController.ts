@@ -1,17 +1,24 @@
-import { Controller } from "../decorators/Controller";
-import { Get, Post } from "../decorators/Route";
-import { Request, Response } from "express";
+import { Controller, Get, Post, Body, Query, Res } from "../decorators";
+import { Response } from "express";
+import { UserService } from "../service";
+import { ApiResponse } from "../utils";
 
-@Controller("/users")
+@Controller("users")
 export class UserController {
-	@Get("/")
-	getAllUsers(req: Request, res: Response) {
-		res.send("Get all users");
+	private userService: UserService;
+	constructor() {
+		this.userService = new UserService();
 	}
 
-	@Post("/")
-	createUser(req: Request, res: Response) {
-		const body = req.body;
-		res.send(`Create a user with data: ${JSON.stringify(body)}`);
+	@Get()
+	getAllUsers(@Query() query: any, @Res() res: Response) {
+		const users = this.userService.getUsers();
+		ApiResponse.success(res, users);
+	}
+
+	@Post()
+	createUser(@Body() body: any, @Res() res: Response) {
+		console.log("Body received:", body);
+		ApiResponse.success(res, { created: true, data: body }, 201);
 	}
 }

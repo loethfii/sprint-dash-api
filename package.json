@@ -6,15 +6,23 @@
 	"scripts": {
 		"start": "node dist/app.js",
 		"dev": "tsc-watch --onSuccess \"node dist/app.js\"",
-		"build": "tsc"
+		"build": "tsc",
+		"typeorm": "typeorm-ts-node-commonjs -d src/data-source.ts",
+		"migration:generate": "f() { npm run typeorm -- migration:generate \"src/migrations/$1\"; }; f",
+		"migration:run": "npm run typeorm -- migration:run",
+		"migration:revert": "npm run typeorm -- migration:revert"
 	},
 	"dependencies": {
+		"dotenv": "^17.4.2",
 		"express": "^4.19.2",
-		"reflect-metadata": "^0.2.2"
+		"pg": "^8.22.0",
+		"reflect-metadata": "^0.2.2",
+		"typeorm": "^1.0.0"
 	},
 	"devDependencies": {
 		"@types/express": "^4.17.21",
 		"@types/node": "^20.14.8",
+		"ts-node": "^10.9.2",
 		"tsc-watch": "^6.2.0",
 		"typescript": "^5.5.2"
 	}

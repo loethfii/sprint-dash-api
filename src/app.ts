@@ -1,8 +1,8 @@
 import express from "express";
-import { UserController } from "./controllers/UserController";
-import { registerRoutes } from "./utils/registerRoutes";
+import { UserController, RootController } from "./controllers";
+import { registerRoutes } from "./utils";
 import "reflect-metadata";
-import { RootController } from "./controllers/RootController";
+import { AppDataSource } from "./data-source";
 
 const app = express();
 const port = 3000;
@@ -10,8 +10,15 @@ const host = "0.0.0.0";
 
 app.use(express.json());
 
-registerRoutes(app, [UserController, RootController]);
+registerRoutes(app, [UserController, RootController], "/api/v1");
 
-app.listen(port, host, () => {
-	console.log(`Server is running on http://${host}:${port}`);
-});
+AppDataSource.initialize()
+	.then(() => {
+		console.log("Data Source has been initialized!");
+		app.listen(port, host, () => {
+			console.log(`Server is running on http://${host}:${port}`);
+		});
+	})
+	.catch((err) => {
+		console.error("Error during Data Source initialization", err);
+	});

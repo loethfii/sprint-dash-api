@@ -1,6 +1,6 @@
 import "reflect-metadata";
 
-export function Get(path: string): MethodDecorator {
+export function Get(path: string = ""): MethodDecorator {
 	return (
 		target,
 		propertyKey: string | symbol,
@@ -11,7 +11,7 @@ export function Get(path: string): MethodDecorator {
 	};
 }
 
-export function Post(path: string): MethodDecorator {
+export function Post(path: string = ""): MethodDecorator {
 	return (
 		target,
 		propertyKey: string | symbol,
