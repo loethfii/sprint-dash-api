@@ -1,5 +1,11 @@
 import express from "express";
-import { UserController, RootController } from "./controllers";
+import {
+	UserController,
+	RootController,
+	AuthController,
+	ProjectController,
+	TaskController,
+} from "./controllers";
 import { registerRoutes } from "./utils";
 import "reflect-metadata";
 import { AppDataSource } from "./data-source";
@@ -10,7 +16,11 @@ const host = "0.0.0.0";
 
 app.use(express.json());
 
-registerRoutes(app, [UserController, RootController], "/api/v1");
+registerRoutes(
+	app,
+	[UserController, RootController, AuthController, ProjectController, TaskController],
+	"/api/v1"
+);
 
 AppDataSource.initialize()
 	.then(() => {

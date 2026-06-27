@@ -1,23 +1,23 @@
 import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
-import { BaseTable } from "./BaseTable";
-import { User } from "./User";
-import { Project } from "./Project";
+import { BaseTableEntity } from "./BaseTableEntity";
+import { UserEntity } from "./UserEntity";
+import { ProjectEntity } from "./ProjectEntity";
 
 @Entity({ name: "project_assignments" })
-export class ProjectAssignment extends BaseTable {
+export class ProjectAssignmentEntity extends BaseTableEntity {
 	@Column({ name: "project_id" })
 	projectId!: number;
 
-	@ManyToOne(() => Project)
+	@ManyToOne(() => ProjectEntity)
 	@JoinColumn({ name: "project_id" })
-	project!: Project;
+	project!: ProjectEntity;
 
 	@Column({ name: "manager_id" })
 	managerId!: number;
 
-	@ManyToOne(() => User)
+	@ManyToOne(() => UserEntity)
 	@JoinColumn({ name: "manager_id" })
-	manager!: User;
+	manager!: UserEntity;
 
 	@Column({ name: "assigned_at", type: "timestamp" })
 	assignedAt!: Date;

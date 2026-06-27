@@ -1,24 +1,24 @@
 import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
-import { BaseTable } from "./BaseTable";
-import { User } from "./User";
-import { Task } from "./Task";
+import { BaseTableEntity } from "./BaseTableEntity";
+import { UserEntity } from "./UserEntity";
+import { TaskEntity } from "./TaskEntity";
 import { EmailType, EmailStatus } from "../enums";
 
 @Entity({ name: "email_notifications" })
-export class EmailNotification extends BaseTable {
+export class EmailNotificationEntity extends BaseTableEntity {
 	@Column({ name: "task_id" })
 	taskId!: number;
 
-	@ManyToOne(() => Task)
+	@ManyToOne(() => TaskEntity)
 	@JoinColumn({ name: "task_id" })
-	task!: Task;
+	task!: TaskEntity;
 
 	@Column({ name: "recipient_id" })
 	recipientId!: number;
 
-	@ManyToOne(() => User)
+	@ManyToOne(() => UserEntity)
 	@JoinColumn({ name: "recipient_id" })
-	recipient!: User;
+	recipient!: UserEntity;
 
 	@Column({
 		type: "enum",

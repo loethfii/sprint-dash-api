@@ -1,2 +1,5 @@
+export * from "./AuthController";
 export * from "./RootController";
 export * from "./UserController";
+export * from "./ProjectController";
+export * from "./TaskController";

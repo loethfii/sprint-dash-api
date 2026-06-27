@@ -1,30 +1,30 @@
 import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
-import { BaseTable } from "./BaseTable";
-import { User } from "./User";
-import { Task } from "./Task";
+import { BaseTableEntity } from "./BaseTableEntity";
+import { UserEntity } from "./UserEntity";
+import { TaskEntity } from "./TaskEntity";
 
 @Entity({ name: "task_assignments" })
-export class TaskAssignment extends BaseTable {
+export class TaskAssignmentEntity extends BaseTableEntity {
 	@Column({ name: "task_id" })
 	taskId!: number;
 
-	@ManyToOne(() => Task)
+	@ManyToOne(() => TaskEntity)
 	@JoinColumn({ name: "task_id" })
-	task!: Task;
+	task!: TaskEntity;
 
 	@Column({ name: "user_id" })
 	userId!: number;
 
-	@ManyToOne(() => User)
+	@ManyToOne(() => UserEntity)
 	@JoinColumn({ name: "user_id" })
-	user!: User;
+	user!: UserEntity;
 
 	@Column({ name: "assigned_by" })
 	assignedBy!: number;
 
-	@ManyToOne(() => User)
+	@ManyToOne(() => UserEntity)
 	@JoinColumn({ name: "assigned_by" })
-	assigner!: User;
+	assigner!: UserEntity;
 
 	@Column({ name: "assigned_at", type: "timestamp" })
 	assignedAt!: Date;

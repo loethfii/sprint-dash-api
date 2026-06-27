@@ -1,10 +1,10 @@
 import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
-import { BaseTable } from "./BaseTable";
-import { User } from "./User";
+import { BaseTableEntity } from "./BaseTableEntity";
+import { UserEntity } from "./UserEntity";
 import { ProjectPriority } from "../enums";
 
 @Entity({ name: "projects" })
-export class Project extends BaseTable {
+export class ProjectEntity extends BaseTableEntity {
 	@Column({ name: "project_name", type: "varchar", length: 255 })
 	projectName!: string;
 
@@ -24,7 +24,7 @@ export class Project extends BaseTable {
 	@Column({ name: "created_by" })
 	createdBy!: number;
 
-	@ManyToOne(() => User)
+	@ManyToOne(() => UserEntity)
 	@JoinColumn({ name: "created_by" })
-	creator!: User;
+	creator!: UserEntity;
 }

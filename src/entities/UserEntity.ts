@@ -1,9 +1,9 @@
 import { Entity, Column } from "typeorm";
-import { BaseTable } from "./BaseTable";
+import { BaseTableEntity } from "./BaseTableEntity";
 import { UserRole } from "../enums";
 
 @Entity({ name: "users" })
-export class User extends BaseTable {
+export class UserEntity extends BaseTableEntity {
 	@Column({ type: "varchar", length: 255 })
 	name!: string;
 

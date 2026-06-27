@@ -1,24 +1,24 @@
 import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
-import { BaseTable } from "./BaseTable";
-import { User } from "./User";
-import { Project } from "./Project";
+import { BaseTableEntity } from "./BaseTableEntity";
+import { UserEntity } from "./UserEntity";
+import { ProjectEntity } from "./ProjectEntity";
 import { TaskStatus, TaskPriority } from "../enums";
 
 @Entity({ name: "tasks" })
-export class Task extends BaseTable {
+export class TaskEntity extends BaseTableEntity {
 	@Column({ name: "project_id" })
 	projectId!: number;
 
-	@ManyToOne(() => Project)
+	@ManyToOne(() => ProjectEntity)
 	@JoinColumn({ name: "project_id" })
-	project!: Project;
+	project!: ProjectEntity;
 
 	@Column({ name: "parent_task_id", nullable: true })
 	parentTaskId?: number;
 
-	@ManyToOne(() => Task, { nullable: true })
+	@ManyToOne(() => TaskEntity, { nullable: true })
 	@JoinColumn({ name: "parent_task_id" })
-	parentTask?: Task;
+	parentTask?: TaskEntity;
 
 	@Column({ type: "varchar", length: 255 })
 	title!: string;
@@ -49,7 +49,7 @@ export class Task extends BaseTable {
 	@Column({ name: "created_by" })
 	createdBy!: number;
 
-	@ManyToOne(() => User)
+	@ManyToOne(() => UserEntity)
 	@JoinColumn({ name: "created_by" })
-	creator!: User;
+	creator!: UserEntity;
 }
