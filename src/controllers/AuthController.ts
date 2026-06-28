@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Res } from "../decorators";
+import { Controller, Get, Post, Body, Res, Auth, Req, Validate } from "../decorators";
 import { Response } from "express";
 import { ApiResponse } from "../utils";
-import { AuthService } from "../service"
+import { AuthService } from "../service";
+import { LoginDto } from "../dtos";
 
 @Controller("auth")
 export class AuthController {
@@ -12,7 +13,8 @@ export class AuthController {
 	}
 
 	@Post("login")
-	async login(@Body() body: any, @Res() res: Response) {
+	@Validate(LoginDto)
+	async login(@Body() body: LoginDto, @Res() res: Response) {
 		const result = await this.authService.login(body);
 		ApiResponse.success(res, result);
 	}
@@ -24,8 +26,11 @@ export class AuthController {
 	}
 
 	@Get("me")
-	async me(@Res() res: Response) {
-		const result = await this.authService.me();
+	@Auth()
+	async me(@Req() req: any, @Res() res: Response) {
+		const result = await this.authService.me(req.user);
 		ApiResponse.success(res, result);
 	}
 }
+
+

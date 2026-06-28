@@ -1,5 +1,10 @@
 import { Express, Request, Response, NextFunction } from "express";
 import "reflect-metadata";
+import { plainToInstance } from "class-transformer";
+import { validate } from "class-validator";
+import { authenticate } from "../middlewares/auth.middleware";
+import { ForbiddenException, BadRequestException } from "../exceptions";
+import { UserRole } from "../enums";
 
 function joinPaths(...segments: string[]): string {
 	const parts = segments
@@ -24,10 +29,44 @@ export function registerRoutes(app: Express, controllers: any[], basePath: strin
 
 			if (typeof routePath === "string" && httpMethod) {
 				const fullPath = joinPaths(basePath, prefix, routePath);
+				const authRequired = Reflect.getMetadata("authRequired", routeHandler);
+				const authRoles: UserRole[] = Reflect.getMetadata("authRoles", routeHandler);
+				const validateDtoClass = Reflect.getMetadata("validateDto", routeHandler);
+
 				app[httpMethod](fullPath, async (req: Request, res: Response, next: NextFunction) => {
 					try {
+						if (authRequired) {
+							await new Promise<void>((resolve, reject) => {
+								authenticate(req, res, (err) => {
+									if (err) return reject(err);
+									resolve();
+								});
+							});
+
+							if (authRoles && authRoles.length > 0) {
+								const user = (req as any).user;
+								if (!user || !authRoles.includes(user.role)) {
+									throw new ForbiddenException("You do not have permission to access this resource");
+								}
+							}
+						}
+
+						if (validateDtoClass) {
+							const dtoInstance = plainToInstance(validateDtoClass, req.body);
+							const errors = await validate(dtoInstance);
+							if (errors.length > 0) {
+								const errorMessages = errors
+									.map((err) => Object.values(err.constraints || {}).join(", "))
+									.join("; ");
+								throw new BadRequestException(errorMessages);
+							}
+							req.body = dtoInstance;
+						}
+
 						const paramsMeta: any[] =
 							Reflect.getMetadata("params", controller.prototype, method) || [];
+
+
 
 						const args: any[] = [];
 						if (paramsMeta.length === 0) {

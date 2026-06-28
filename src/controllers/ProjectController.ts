@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res } from "../decorators";
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res, Validate } from "../decorators";
 import { Response } from "express";
 import { ApiResponse } from "../utils";
 import { ProjectService } from "../service";
+import { CreateProjectDto, UpdateProjectDto, AssignManagerDto } from "../dtos";
 
 @Controller("projects")
 export class ProjectController {
@@ -18,7 +19,8 @@ export class ProjectController {
 	}
 
 	@Post()
-	async createProject(@Body() body: any, @Res() res: Response) {
+	@Validate(CreateProjectDto)
+	async createProject(@Body() body: CreateProjectDto, @Res() res: Response) {
 		const result = await this.projectService.createProject(body);
 		ApiResponse.success(res, result);
 	}
@@ -30,7 +32,8 @@ export class ProjectController {
 	}
 
 	@Put(":id")
-	async updateProject(@Param("id") id: string, @Body() body: any, @Res() res: Response) {
+	@Validate(UpdateProjectDto)
+	async updateProject(@Param("id") id: string, @Body() body: UpdateProjectDto, @Res() res: Response) {
 		const result = await this.projectService.updateProject(id, body);
 		ApiResponse.success(res, result);
 	}
@@ -42,7 +45,8 @@ export class ProjectController {
 	}
 
 	@Post(":id/assign")
-	async assignManager(@Param("id") id: string, @Body() body: any, @Res() res: Response) {
+	@Validate(AssignManagerDto)
+	async assignManager(@Param("id") id: string, @Body() body: AssignManagerDto, @Res() res: Response) {
 		const result = await this.projectService.assignManager(id, body);
 		ApiResponse.success(res, result);
 	}
@@ -57,3 +61,4 @@ export class ProjectController {
 		ApiResponse.success(res, result);
 	}
 }
+

@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res } from "../decorators";
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res, Auth, Validate } from "../decorators";
 import { Response } from "express";
 import { UserService } from "../service";
 import { ApiResponse } from "../utils";
+import { UserRole } from "../enums";
+import { CreateUserDto, UpdateUserDto } from "../dtos";
 
 @Controller("users")
 export class UserController {
@@ -11,32 +13,41 @@ export class UserController {
 	}
 
 	@Get()
+	@Auth([UserRole.ADMIN])
 	async getAllUsers(@Query() query: any, @Res() res: Response) {
 		const result = await this.userService.getAllUsers(query, res);
 		return result
 	}
 
 	@Post()
-	async createUser(@Body() body: any, @Res() res: Response) {
+	@Auth([UserRole.ADMIN])
+	@Validate(CreateUserDto)
+	async createUser(@Body() body: CreateUserDto, @Res() res: Response) {
 		const result = await this.userService.createUser(body);
 		ApiResponse.success(res, result);
 	}
 
 	@Get(":id")
+	@Auth([UserRole.ADMIN])
 	async getUserById(@Param("id") id: string, @Res() res: Response) {
 		const result = await this.userService.getUserById(id);
 		ApiResponse.success(res, result);
 	}
 
 	@Put(":id")
-	async updateUser(@Param("id") id: string, @Body() body: any, @Res() res: Response) {
+	@Auth([UserRole.ADMIN])
+	@Validate(UpdateUserDto)
+	async updateUser(@Param("id") id: string, @Body() body: UpdateUserDto, @Res() res: Response) {
 		const result = await this.userService.updateUser(id, body);
 		ApiResponse.success(res, result);
 	}
 
 	@Delete(":id")
+	@Auth([UserRole.ADMIN])
 	async deleteUser(@Param("id") id: string, @Res() res: Response) {
 		const result = await this.userService.deleteUser(id);
 		ApiResponse.success(res, result);
 	}
 }
+
+

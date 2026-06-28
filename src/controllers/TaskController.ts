@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Patch, Body, Query, Param, Res } from "../decorators";
+import { Controller, Get, Post, Put, Delete, Patch, Body, Query, Param, Res, Validate } from "../decorators";
 import { Response } from "express";
 import { ApiResponse } from "../utils";
 import { TaskService } from "../service";
+import { CreateTaskDto, UpdateTaskDto, AssignUserDto, UpdateTaskStatusDto } from "../dtos";
 
 @Controller("tasks")
 export class TaskController {
@@ -18,7 +19,8 @@ export class TaskController {
 	}
 
 	@Post()
-	async createTask(@Body() body: any, @Res() res: Response) {
+	@Validate(CreateTaskDto)
+	async createTask(@Body() body: CreateTaskDto, @Res() res: Response) {
 		const result = await this.taskService.createTask(body);
 		ApiResponse.success(res, result);
 	}
@@ -36,7 +38,8 @@ export class TaskController {
 	}
 
 	@Put(":id")
-	async updateTask(@Param("id") id: string, @Body() body: any, @Res() res: Response) {
+	@Validate(UpdateTaskDto)
+	async updateTask(@Param("id") id: string, @Body() body: UpdateTaskDto, @Res() res: Response) {
 		const result = await this.taskService.updateTask(id, body);
 		ApiResponse.success(res, result);
 	}
@@ -54,7 +57,8 @@ export class TaskController {
 	}
 
 	@Post(":id/assign")
-	async assignUser(@Param("id") id: string, @Body() body: any, @Res() res: Response) {
+	@Validate(AssignUserDto)
+	async assignUser(@Param("id") id: string, @Body() body: AssignUserDto, @Res() res: Response) {
 		const result = await this.taskService.assignUser(id, body);
 		ApiResponse.success(res, result);
 	}
@@ -70,8 +74,10 @@ export class TaskController {
 	}
 
 	@Patch(":id/status")
-	async updateTaskStatus(@Param("id") id: string, @Body() body: any, @Res() res: Response) {
+	@Validate(UpdateTaskStatusDto)
+	async updateTaskStatus(@Param("id") id: string, @Body() body: UpdateTaskStatusDto, @Res() res: Response) {
 		const result = await this.taskService.updateTaskStatus(id, body);
 		ApiResponse.success(res, result);
 	}
 }
+
