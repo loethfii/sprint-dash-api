@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res, Auth, Validate } from "../decorators";
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res, Auth, Validate, ValidateQuery } from "../decorators";
 import { Response } from "express";
 import { UserService } from "../service";
 import { ApiResponse } from "../utils";
 import { UserRole } from "../enums";
-import { CreateUserDto, UpdateUserDto } from "../dtos";
+import { CreateUserDto, UpdateUserDto, CommonQueryDTO } from "../dtos";
 
 @Controller("users")
 export class UserController {
@@ -14,9 +14,10 @@ export class UserController {
 
 	@Get()
 	@Auth([UserRole.ADMIN])
-	async getAllUsers(@Query() query: any, @Res() res: Response) {
-		const result = await this.userService.getAllUsers(query, res);
-		return result
+	@ValidateQuery(CommonQueryDTO)
+	async getAllUsers(@Query() query: CommonQueryDTO, @Res() res: Response) {
+		const result = await this.userService.getAllUsers(query);
+		ApiResponse.success(res, result.data, { total: result.total, page: result.page, limit: result.limit });
 	}
 
 	@Post()

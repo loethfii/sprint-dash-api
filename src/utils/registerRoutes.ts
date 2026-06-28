@@ -32,6 +32,7 @@ export function registerRoutes(app: Express, controllers: any[], basePath: strin
 				const authRequired = Reflect.getMetadata("authRequired", routeHandler);
 				const authRoles: UserRole[] = Reflect.getMetadata("authRoles", routeHandler);
 				const validateDtoClass = Reflect.getMetadata("validateDto", routeHandler);
+				const validateQueryDtoClass = Reflect.getMetadata("validateQueryDto", routeHandler);
 
 				app[httpMethod](fullPath, async (req: Request, res: Response, next: NextFunction) => {
 					try {
@@ -61,6 +62,18 @@ export function registerRoutes(app: Express, controllers: any[], basePath: strin
 								throw new BadRequestException(errorMessages);
 							}
 							req.body = dtoInstance;
+						}
+
+						if (validateQueryDtoClass) {
+							const dtoInstance = plainToInstance(validateQueryDtoClass, req.query as any);
+							const errors = await validate(dtoInstance);
+							if (errors.length > 0) {
+								const errorMessages = errors
+									.map((err) => Object.values(err.constraints || {}).join(", "))
+									.join("; ");
+								throw new BadRequestException(errorMessages);
+							}
+							req.query = dtoInstance as any;
 						}
 
 						const paramsMeta: any[] =

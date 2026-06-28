@@ -10,7 +10,18 @@ const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 export class AuthService {
 	async login(body: LoginDto) {
 		const user = await entityManager.findOne(UserEntity, {
-			where: [{ username: body.identifier }, { email: body.identifier }]
+			where: [{ username: body.identifier }, { email: body.identifier }],
+			select: {
+				id: true,
+				name: true,
+				username: true,
+				passwordHash: true,
+				email: true,
+				phoneNumber: true,
+				role: true,
+				createdAt: true,
+				updatedAt: true
+			}
 		});
 		if (!user) {
 			throw new UnauthorizedException("Invalid username or password");
@@ -23,12 +34,9 @@ export class AuthService {
 
 		const accessToken = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1d" });
 
-		// Exclude passwordHash from user info returned
-		const { passwordHash, ...userResponse } = user;
-
 		return {
 			accessToken,
-			user: userResponse,
+			user,
 		};
 	}
 
@@ -37,8 +45,6 @@ export class AuthService {
 	}
 
 	async me(user: UserEntity) {
-		// Exclude passwordHash
-		const { passwordHash, ...userResponse } = user;
-		return userResponse;
+		return user;
 	}
 }

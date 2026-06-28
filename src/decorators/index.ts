@@ -3,5 +3,7 @@ export * from "./Params";
 export * from "./Route";
 export * from "./AuthDecorator";
 export * from "./ValidateDecorator";
+export * from "./ValidateQueryDecorator";
+
 
 

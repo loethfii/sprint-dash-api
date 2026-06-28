@@ -4,47 +4,60 @@ import { UserEntity } from "../entities";
 import { entityManager } from "../types";
 import { BadRequestException, NotFoundException } from "../exceptions";
 import { ApiResponse } from "../utils";
+import { CreateUserDto, UpdateUserDto, CommonQueryDTO } from "../dtos";
 
 export class UserService {
 	async getUsers() {
 		const users = await entityManager.find(UserEntity);
-		return users.map(({ passwordHash, ...user }) => user);
+		return users;
 	}
 
-	async getAllUsers(query: any, res: Response) {
-		const users = await entityManager.find(UserEntity);
-		const sanitizedUsers = users.map(({ passwordHash, ...user }) => user);
-		return ApiResponse.success(res, sanitizedUsers, {
-			page: 1,
-			limit: 22,
-			total: 22,
-			totalPages: 1
-		});
+	async getAllUsers(query: CommonQueryDTO) {
+		const queryBuilder = entityManager.getRepository(UserEntity).createQueryBuilder("user");
+
+		if (query.keyword) {
+			queryBuilder.andWhere(
+				"(LOWER(user.name) LIKE LOWER(:keyword) OR LOWER(user.username) LIKE LOWER(:keyword) OR LOWER(user.email) LIKE LOWER(:keyword))",
+				{ keyword: `%${query.keyword}%` }
+			);
+		}
+
+		const page = query.page || 1;
+		const limit = query.limit || 10;
+		const skip = (page - 1) * limit;
+
+		queryBuilder.take(limit).skip(skip);
+
+		const [users, total] = await queryBuilder.getManyAndCount();
+
+		return {
+			data: users,
+			total,
+			page,
+			limit
+		};
 	}
 
-	async createUser(body: any) {
-		const { name, username, password, email, phoneNumber, role } = body;
-
+	async createUser(body: CreateUserDto) {
 		const existingUser = await entityManager.findOne(UserEntity, {
-			where: [{ username }, { email }]
+			where: [{ username: body.username }, { email: body.email }]
 		});
 		if (existingUser) {
 			throw new BadRequestException("Username or email already exists");
 		}
 
-		const passwordHash = await bcrypt.hash(password, 10);
+		const passwordHash = await bcrypt.hash(body.password, 10);
 		const user = entityManager.create(UserEntity, {
-			name,
-			username,
+			name: body.name,
+			username: body.username,
 			passwordHash,
-			email,
-			phoneNumber,
-			role
+			email: body.email,
+			phoneNumber: body.phoneNumber,
+			role: body.role
 		});
 
 		await entityManager.save(UserEntity, user);
-		const { passwordHash: _, ...userResponse } = user;
-		return userResponse;
+		return user;
 	}
 
 	async getUserById(id: string) {
@@ -52,43 +65,41 @@ export class UserService {
 		if (!user) {
 			throw new NotFoundException("User not found");
 		}
-		const { passwordHash, ...userResponse } = user;
-		return userResponse;
+		return user;
 	}
 
-	async updateUser(id: string, body: any) {
+	async updateUser(id: string, body: UpdateUserDto) {
 		const user = await entityManager.findOne(UserEntity, { where: { id } });
 		if (!user) {
 			throw new NotFoundException("User not found");
 		}
 
-		const { name, username, password, email, phoneNumber, role } = body;
-		if (username && username !== user.username) {
-			const checkUsername = await entityManager.findOne(UserEntity, { where: { username } });
+		// const { name, username, password, email, phoneNumber, role } = body;
+		if (body.username && body.username !== user.username) {
+			const checkUsername = await entityManager.findOne(UserEntity, { where: { username: body.username } });
 			if (checkUsername) {
 				throw new BadRequestException("Username already exists");
 			}
-			user.username = username;
+			user.username = body.username;
 		}
 
-		if (email && email !== user.email) {
-			const checkEmail = await entityManager.findOne(UserEntity, { where: { email } });
+		if (body.email && body.email !== user.email) {
+			const checkEmail = await entityManager.findOne(UserEntity, { where: { email: body.email } });
 			if (checkEmail) {
 				throw new BadRequestException("Email already exists");
 			}
-			user.email = email;
+			user.email = body.email;
 		}
 
-		if (name) user.name = name;
-		if (phoneNumber) user.phoneNumber = phoneNumber;
-		if (role) user.role = role;
-		if (password) {
-			user.passwordHash = await bcrypt.hash(password, 10);
+		if (body.name) user.name = body.name;
+		if (body.phoneNumber) user.phoneNumber = body.phoneNumber;
+		if (body.role) user.role = body.role;
+		if (body.password) {
+			user.passwordHash = await bcrypt.hash(body.password, 10);
 		}
 
 		await entityManager.save(UserEntity, user);
-		const { passwordHash: _, ...userResponse } = user;
-		return userResponse;
+		return user;
 	}
 
 	async deleteUser(id: string) {
@@ -96,7 +107,7 @@ export class UserService {
 		if (!user) {
 			throw new NotFoundException("User not found");
 		}
-		await entityManager.remove(UserEntity, user);
+		await entityManager.softDelete(UserEntity, user.id);
 		return { message: "User successfully deleted" };
 	}
 }

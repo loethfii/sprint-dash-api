@@ -1,6 +1,13 @@
-import { IsNotEmpty, IsString, IsOptional, IsEnum, IsDateString } from "class-validator";
+import { IsNotEmpty, IsString, IsOptional, IsEnum, IsDateString, IsUUID } from "class-validator";
 import { TaskStatus, TaskPriority } from "../enums";
+import { CommonQueryDTO } from "./CommonDto";
 
+
+export class QueryTaskDTO extends CommonQueryDTO {
+	@IsNotEmpty()
+	@IsUUID()
+	projectId: string
+}
 export class CreateTaskDto {
 	@IsNotEmpty({ message: "Project ID is required" })
 	@IsString({ message: "Project ID must be a string" })
