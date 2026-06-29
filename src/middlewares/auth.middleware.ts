@@ -19,7 +19,11 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 	const token = authHeader.split(" ")[1];
 	try {
 		const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-		const user = await entityManager.findOne(UserEntity, { where: { id: decoded.userId } });
+		const user = await entityManager.findOne(UserEntity, {
+			where: { id: decoded.userId }, relations: {
+				menu: true
+			}
+		});
 		if (!user) {
 			return next(new UnauthorizedException("User not found"));
 		}

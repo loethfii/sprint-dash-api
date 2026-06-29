@@ -9,6 +9,9 @@ export class TaskEntity extends BaseTableEntity {
 	@Column({ name: "project_id", nullable: true })
 	projectId!: string | null;
 
+	@Column({ name: "scope_category", type: "varchar", nullable: true })
+	scopeCategory?: string;
+
 	@ManyToOne(() => ProjectEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "project_id" })
 	project!: ProjectEntity | null;

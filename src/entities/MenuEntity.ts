@@ -1,5 +1,5 @@
 import { BaseTableEntity } from "./BaseTableEntity";
-import { Column, Entity, OneToMany } from "typeorm";
+import { Entity, OneToMany } from "typeorm";
 import { UserEntity } from "./UserEntity";
 
 @Entity({ name: "menus" })

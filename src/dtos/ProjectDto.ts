@@ -17,6 +17,10 @@ export class CreateProjectDto {
 	@IsOptional()
 	@IsEnum(ProjectPriority, { message: "Invalid priority value" })
 	priority?: ProjectPriority;
+
+	@IsOptional()
+	@IsString({ message: "Description must be a string" })
+	description?: string;
 }
 
 export class UpdateProjectDto {
@@ -35,6 +39,10 @@ export class UpdateProjectDto {
 	@IsOptional()
 	@IsEnum(ProjectPriority, { message: "Invalid priority value" })
 	priority?: ProjectPriority;
+
+	@IsOptional()
+	@IsString({ message: "Description must be a string" })
+	description?: string;
 }
 
 export class AssignManagerDto {

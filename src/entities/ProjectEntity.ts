@@ -8,6 +8,12 @@ export class ProjectEntity extends BaseTableEntity {
 	@Column({ name: "project_name", type: "varchar", length: 255 })
 	projectName!: string;
 
+	@Column({ name: "description", type: "text", nullable: true })
+	description?: string;
+
+	@Column({ name: "scope_category", type: "varchar", nullable: true })
+	scopeCategory?: string;
+
 	@Column({ name: "start_date", type: "date" })
 	startDate!: Date;
 
