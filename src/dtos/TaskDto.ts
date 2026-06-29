@@ -87,3 +87,21 @@ export class UpdateTaskStatusDto {
 	@IsEnum(TaskStatus, { message: "Invalid status value" })
 	status!: TaskStatus;
 }
+
+export class TaskTree {
+	@IsOptional()
+	@IsUUID()
+	projectId?: string;
+
+	@IsOptional()
+	@IsUUID()
+	assignedUser?: string;
+
+	@IsOptional()
+	@IsEnum(TaskPriority)
+	priority?: TaskPriority
+
+	@IsOptional()
+	@IsEnum(TaskStatus)
+	status?: TaskStatus
+}

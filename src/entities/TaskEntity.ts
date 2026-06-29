@@ -1,8 +1,9 @@
-import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, OneToOne } from "typeorm";
 import { BaseTableEntity } from "./BaseTableEntity";
 import { UserEntity } from "./UserEntity";
 import { ProjectEntity } from "./ProjectEntity";
 import { TaskStatus, TaskPriority } from "../enums";
+import { TaskAssignmentEntity } from "./TaskAssignmentEntity";
 
 @Entity({ name: "tasks" })
 export class TaskEntity extends BaseTableEntity {
@@ -55,4 +56,7 @@ export class TaskEntity extends BaseTableEntity {
 	@ManyToOne(() => UserEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "created_by" })
 	creator!: UserEntity | null;
+
+	@OneToOne(() => TaskAssignmentEntity, (assignment) => assignment.task)
+	taskAssignment?: TaskAssignmentEntity;
 }

@@ -1,8 +1,10 @@
 import { entityManager } from "../types";
 import { TaskEntity, UserEntity, ProjectAssignmentEntity, ProjectEntity, TaskAssignmentEntity } from "../entities";
-import { CreateTaskDto, QueryTaskDTO, UpdateTaskDto, AssignUserDto, UpdateTaskStatusDto } from "../dtos";
+import { CreateTaskDto, QueryTaskDTO, UpdateTaskDto, AssignUserDto, UpdateTaskStatusDto, TaskTree } from "../dtos";
 import { UserRole, TaskStatus, TaskPriority } from "../enums";
 import { BadRequestException, ForbiddenException, NotFoundException } from "../exceptions";
+import { getRedis, setRedis, delRedis, getRedisClient } from "../utils";
+import { IsNull, Not } from "typeorm";
 
 export class TaskService {
 	private async checkProjectAssignment(projectId: string, user: UserEntity) {
@@ -107,11 +109,78 @@ export class TaskService {
 		});
 
 		await entityManager.save(TaskEntity, task);
+		await this.clearTaskTreeCache();
 		return task;
 	}
 
-	async getTasksTree() {
-		return null;
+	private async clearTaskTreeCache() {
+		try {
+			const client = getRedisClient(1);
+			const keys = await client.keys("tree:task:*");
+			if (keys.length > 0) {
+				await client.del(...keys);
+			}
+		} catch (error) {
+			console.error("Failed to clear Redis cache for task tree:", error);
+		}
+	}
+
+	async getTasksTree(query: TaskTree) {
+		const queryKey = [
+			query?.projectId || "all",
+			query?.assignedUser || "all",
+			query?.priority || "all",
+			query?.status || "all"
+		].join(":");
+		const cacheKey = `tree:task:${queryKey}`;
+
+		const cachedTree = await getRedis(1, cacheKey);
+		if (cachedTree) {
+			return JSON.parse(cachedTree);
+		}
+
+		const whereFilters: any = {};
+		if (query?.projectId) {
+			whereFilters.projectId = query.projectId;
+		}
+		if (query?.priority) {
+			whereFilters.priority = query.priority;
+		}
+		if (query?.status) {
+			whereFilters.status = query.status;
+		}
+		if (query?.assignedUser) {
+			whereFilters.taskAssignment = { userId: query.assignedUser };
+		}
+
+		const tasks = await entityManager.find(TaskEntity, {
+			where: {
+				parentTaskId: IsNull(),
+				...whereFilters
+			},
+			relations: {
+				taskAssignment: {
+					user: true
+				}
+			}
+		});
+		const childTasks = await entityManager.find(TaskEntity, {
+			where: {
+				parentTaskId: Not(IsNull()),
+				...whereFilters
+			},
+			relations: {
+				taskAssignment: {
+					user: true
+				}
+			}
+		});
+		const data = tasks.map(task => ({
+			...task,
+			child: childTasks.filter(child => child.parentTaskId === task.id)
+		}));
+		await setRedis(1, cacheKey, JSON.stringify(data));
+		return data;
 	}
 
 	async getTaskById(id: string, user: UserEntity) {
@@ -155,6 +224,7 @@ export class TaskService {
 		if (body.priority !== undefined) task.priority = body.priority;
 
 		await entityManager.save(TaskEntity, task);
+		await this.clearTaskTreeCache();
 		return task;
 	}
 
@@ -169,6 +239,7 @@ export class TaskService {
 		}
 
 		await entityManager.remove(TaskEntity, task);
+		await this.clearTaskTreeCache();
 		return { message: "Task successfully deleted" };
 	}
 
@@ -184,7 +255,7 @@ export class TaskService {
 	}
 
 	async assignUser(id: string, body: AssignUserDto, user: UserEntity) {
-		return entityManager.transaction(async (tx) => {
+		const result = await entityManager.transaction(async (tx) => {
 			const task = await tx.findOne(TaskEntity, { where: { id } });
 			if (!task) {
 				throw new NotFoundException("Task not found");
@@ -224,10 +295,12 @@ export class TaskService {
 			await tx.save(TaskAssignmentEntity, assignment);
 			return { message: "User successfully assigned to task" };
 		});
+		await this.clearTaskTreeCache();
+		return result;
 	}
 
 	async unassignUser(id: string, userId: string, user: UserEntity) {
-		return entityManager.transaction(async (tx) => {
+		const result = await entityManager.transaction(async (tx) => {
 			const task = await tx.findOne(TaskEntity, { where: { id } });
 			if (!task) {
 				throw new NotFoundException("Task not found");
@@ -246,6 +319,8 @@ export class TaskService {
 			await tx.delete(TaskAssignmentEntity, assignment.id);
 			return { message: "User successfully unassigned from task" };
 		});
+		await this.clearTaskTreeCache();
+		return result;
 	}
 
 	async updateTaskStatus(id: string, body: UpdateTaskStatusDto, user: UserEntity) {
@@ -259,6 +334,7 @@ export class TaskService {
 
 		task.status = body.status;
 		await entityManager.save(TaskEntity, task);
+		await this.clearTaskTreeCache();
 		return task;
 	}
 }

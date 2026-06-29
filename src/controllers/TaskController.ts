@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Patch, Body, Query, Param, Res, Validate, ValidateQuery, Auth, Req } from "../decorators";
-import { Response } from "express";
+import { query, Response } from "express";
 import { ApiResponse } from "../utils";
 import { TaskService } from "../service";
-import { CreateTaskDto, UpdateTaskDto, AssignUserDto, UpdateTaskStatusDto, CommonQueryDTO, QueryTaskDTO } from "../dtos";
+import { CreateTaskDto, UpdateTaskDto, AssignUserDto, UpdateTaskStatusDto, CommonQueryDTO, QueryTaskDTO, TaskTree } from "../dtos";
 import { UserRole } from "../enums";
 
 @Controller("tasks")
@@ -30,8 +30,9 @@ export class TaskController {
 	}
 
 	@Get("tree")
-	async getTasksTree(@Res() res: Response) {
-		const result = await this.taskService.getTasksTree();
+	@ValidateQuery(TaskTree)
+	async getTasksTree(@Query() query: TaskTree, @Res() res: Response) {
+		const result = await this.taskService.getTasksTree(query);
 		ApiResponse.success(res, result);
 	}
 
