@@ -4,7 +4,7 @@ import { CommonQueryDTO } from "./CommonDto";
 
 
 export class QueryTaskDTO extends CommonQueryDTO {
-	@IsNotEmpty()
+	@IsOptional()
 	@IsUUID()
 	projectId: string
 }

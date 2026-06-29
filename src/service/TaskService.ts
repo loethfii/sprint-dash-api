@@ -32,18 +32,13 @@ export class TaskService {
 			if (!assignments) {
 				throw new BadRequestException("You are not assigned to this project")
 			}
-			// const projectIds = assignments.map(a => a.projectId).filter(Boolean) as string[];
-
-			// if (projectIds.length === 0) {
-			// 	return {
-			// 		data: [],
-			// 		total: 0,
-			// 		page: query.page || 1,
-			// 		limit: query.limit || 10
-			// 	};
-			// }
-			// queryBuilder.andWhere("task.projectId IN (:...projectIds)", { projectIds });
 		}
+
+		if (query.projectId) {
+			queryBuilder.andWhere("task.projectId = :projectId", { projectId: query.projectId });
+		}
+
+		queryBuilder.andWhere("task.parentTaskId IS NULL");
 
 		if (query.keyword) {
 			queryBuilder.andWhere(
@@ -68,8 +63,22 @@ export class TaskService {
 
 		const [tasks, total] = await queryBuilder.getManyAndCount();
 
+		let childTasks: TaskEntity[] = [];
+		if (tasks.length > 0) {
+			const parentIds = tasks.map(t => t.id);
+			childTasks = await entityManager.getRepository(TaskEntity)
+				.createQueryBuilder("child")
+				.where("child.parentTaskId IN (:...parentIds)", { parentIds })
+				.getMany();
+		}
+
+		const data = tasks.map(task => ({
+			...task,
+			child: childTasks.filter(child => child.parentTaskId === task.id)
+		}));
+
 		return {
-			data: tasks,
+			data,
 			total,
 			page,
 			limit
