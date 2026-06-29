@@ -39,11 +39,18 @@ export class UserService {
 	}
 
 	async createUser(body: CreateUserDto) {
-		const existingUser = await entityManager.findOne(UserEntity, {
-			where: [{ username: body.username }, { email: body.email }]
+		const existingUsername = await entityManager.findOne(UserEntity, {
+			where: { username: body.username }
 		});
-		if (existingUser) {
-			throw new BadRequestException("Username or email already exists");
+		if (existingUsername) {
+			throw new BadRequestException("Username already exists");
+		}
+
+		const existingEmail = await entityManager.findOne(UserEntity, {
+			where: { email: body.email }
+		});
+		if (existingEmail) {
+			throw new BadRequestException("Email already exists");
 		}
 
 		const passwordHash = await bcrypt.hash(body.password, 10);

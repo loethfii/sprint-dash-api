@@ -1,4 +1,5 @@
 import { In } from "typeorm";
+import { pickBy } from "lodash";
 import { entityManager } from "../types";
 import { ProjectEntity, ProjectAssignmentEntity, UserEntity } from "../entities";
 import { BadRequestException, NotFoundException } from "../exceptions";
@@ -52,8 +53,11 @@ export class ProjectService {
 			startDate: new Date(body.startDate),
 			endDate: new Date(body.endDate),
 			priority: body.priority,
+			description: body.description,
+			scopeCategory: body.scopeCategory,
 			createdBy: user.id
 		});
+
 		await entityManager.save(ProjectEntity, project);
 		return project;
 	}
@@ -75,10 +79,14 @@ export class ProjectService {
 			throw new NotFoundException("Project not found");
 		}
 
-		if (body.projectName !== undefined) project.projectName = body.projectName;
-		if (body.startDate !== undefined) project.startDate = new Date(body.startDate);
-		if (body.endDate !== undefined) project.endDate = new Date(body.endDate);
-		if (body.priority !== undefined) project.priority = body.priority;
+		const { startDate, endDate, ...rest } = body;
+
+		const updateData: Partial<ProjectEntity> = pickBy(rest, (v) => v !== undefined);
+
+		if (startDate !== undefined) updateData.startDate = new Date(startDate);
+		if (endDate !== undefined) updateData.endDate = new Date(endDate);
+
+		Object.assign(project, updateData);
 
 		await entityManager.save(ProjectEntity, project);
 		return project;

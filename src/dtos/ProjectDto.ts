@@ -21,6 +21,10 @@ export class CreateProjectDto {
 	@IsOptional()
 	@IsString({ message: "Description must be a string" })
 	description?: string;
+
+	@IsOptional()
+	@IsString({ message: "Scope category must be a string" })
+	scopeCategory?: string;
 }
 
 export class UpdateProjectDto {
@@ -43,6 +47,10 @@ export class UpdateProjectDto {
 	@IsOptional()
 	@IsString({ message: "Description must be a string" })
 	description?: string;
+
+	@IsOptional()
+	@IsString({ message: "Scope category must be a string" })
+	scopeCategory?: string;
 }
 
 export class AssignManagerDto {
