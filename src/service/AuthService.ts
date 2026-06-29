@@ -32,7 +32,7 @@ export class AuthService {
 			throw new UnauthorizedException("Invalid username or password");
 		}
 
-		const accessToken = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1d" });
+		const accessToken = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
 
 		return {
 			accessToken,

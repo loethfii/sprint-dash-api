@@ -1,6 +1,7 @@
-import { Entity, Column } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
 import { BaseTableEntity } from "./BaseTableEntity";
 import { UserRole } from "../enums";
+import { MenuEntity } from "./MenuEntity";
 
 @Entity({ name: "users" })
 export class UserEntity extends BaseTableEntity {
@@ -25,4 +26,8 @@ export class UserEntity extends BaseTableEntity {
 		default: UserRole.STAFF,
 	})
 	role!: UserRole;
+
+	@ManyToOne(() => MenuEntity, (menu) => menu.users, { nullable: true })
+	@JoinColumn({ name: "menu_id" })
+	menu: MenuEntity;
 }

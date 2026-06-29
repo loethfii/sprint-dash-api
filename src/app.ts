@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
 import {
 	UserController,
 	RootController,
@@ -16,6 +17,7 @@ const port = 3000;
 const host = "0.0.0.0";
 
 app.use(express.json());
+app.use(cors());
 
 registerRoutes(
 	app,

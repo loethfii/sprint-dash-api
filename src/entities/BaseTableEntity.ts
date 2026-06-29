@@ -10,14 +10,14 @@ export abstract class BaseTableEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id!: string;
 
-	@CreateDateColumn({ name: "created_at", default: new Date().toISOString() })
-	createdAt!: string;
+	@CreateDateColumn({ name: "created_at", default: 'now()', type: 'timestamptz' })
+	createdAt!: Date;
 
-	@UpdateDateColumn({ name: "updated_at", default: new Date().toISOString() })
-	updatedAt!: string;
+	@UpdateDateColumn({ name: "updated_at", default: 'now()', type: 'timestamptz' })
+	updatedAt!: Date;
 
 	// @DeleteDateColumn mendukung fitur soft-delete bawaan TypeORM
-	@DeleteDateColumn({ name: "deleted_at", nullable: true })
+	@DeleteDateColumn({ name: "deleted_at", nullable: true, type: 'timestamptz' })
 	deletedAt!: Date | null;
 
 	@Column({

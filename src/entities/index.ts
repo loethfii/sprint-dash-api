@@ -5,3 +5,4 @@ export * from "./ProjectAssignmentEntity";
 export * from "./TaskEntity";
 export * from "./TaskAssignmentEntity";
 export * from "./EmailNotificationEntity";
+export * from "./MenuEntity"
