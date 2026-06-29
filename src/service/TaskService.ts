@@ -59,6 +59,7 @@ export class TaskService {
 		const limit = query.limit || 10;
 		const skip = (page - 1) * limit;
 
+		queryBuilder.orderBy("task.createdAt", "DESC");
 		queryBuilder.take(limit).skip(skip);
 
 		const [tasks, total] = await queryBuilder.getManyAndCount();

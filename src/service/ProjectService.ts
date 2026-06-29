@@ -35,6 +35,7 @@ export class ProjectService {
 		const limit = query.limit || 10;
 		const skip = (page - 1) * limit;
 
+		queryBuilder.orderBy("project.createdAt", "DESC");
 		queryBuilder.take(limit).skip(skip);
 
 		const [projects, total] = await queryBuilder.getManyAndCount();

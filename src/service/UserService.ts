@@ -8,7 +8,9 @@ import { CreateUserDto, UpdateUserDto, CommonQueryDTO } from "../dtos";
 
 export class UserService {
 	async getUsers() {
-		const users = await entityManager.find(UserEntity);
+		const users = await entityManager.find(UserEntity, {
+			order: { createdAt: "DESC" }
+		});
 		return users;
 	}
 
@@ -26,6 +28,7 @@ export class UserService {
 		const limit = query.limit || 10;
 		const skip = (page - 1) * limit;
 
+		queryBuilder.orderBy("user.createdAt", "DESC");
 		queryBuilder.take(limit).skip(skip);
 
 		const [users, total] = await queryBuilder.getManyAndCount();
