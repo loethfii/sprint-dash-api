@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, IsOptional, IsEnum, IsDateString, IsUUID, IsArray } from "class-validator";
+import { IsNotEmpty, IsString, IsOptional, IsEnum, IsDateString, IsUUID, IsArray, ValidateNested } from "class-validator";
+import { Type } from "class-transformer";
 import { TaskStatus, TaskPriority } from "../enums";
 import { CommonQueryDTO } from "./CommonDto";
 
@@ -9,9 +10,9 @@ export class QueryTaskDTO extends CommonQueryDTO {
 	projectId: string
 }
 export class CreateTaskDto {
-	@IsNotEmpty({ message: "Project ID is required" })
+	@IsOptional()
 	@IsString({ message: "Project ID must be a string" })
-	projectId!: string;
+	projectId?: string;
 
 	@IsOptional()
 	@IsString({ message: "Parent Task ID must be a string" })
@@ -21,21 +22,21 @@ export class CreateTaskDto {
 	@IsString({ message: "Title must be a string" })
 	title!: string;
 
-	@IsNotEmpty({ message: "Description is required" })
+	@IsOptional()
 	@IsString({ message: "Description must be a string" })
-	description!: string;
+	description?: string;
 
 	@IsOptional()
 	@IsEnum(TaskStatus, { message: "Invalid status value" })
 	status?: TaskStatus;
 
-	@IsNotEmpty({ message: "Start time is required" })
+	@IsOptional()
 	@IsDateString({}, { message: "Start time must be a valid date string" })
-	startTime!: string;
+	startTime?: string;
 
-	@IsNotEmpty({ message: "End time is required" })
+	@IsOptional()
 	@IsDateString({}, { message: "End time must be a valid date string" })
-	endTime!: string;
+	endTime?: string;
 
 	@IsOptional()
 	@IsEnum(TaskPriority, { message: "Invalid priority value" })
@@ -43,6 +44,8 @@ export class CreateTaskDto {
 
 	@IsOptional()
 	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreateTaskDto)
 	child?: CreateTaskDto[];
 }
 

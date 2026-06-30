@@ -89,6 +89,16 @@ export class TaskService {
 	}
 
 	async createTask(body: CreateTaskDto, user: UserEntity) {
+		if (!body.projectId) {
+			throw new BadRequestException("Project ID is required");
+		}
+		if (!body.startTime) {
+			throw new BadRequestException("Start time is required");
+		}
+		if (!body.endTime) {
+			throw new BadRequestException("End time is required");
+		}
+
 		const project = await entityManager.findOne(ProjectEntity, { where: { id: body.projectId } });
 		if (!project) {
 			throw new NotFoundException("Project not found");
@@ -97,15 +107,19 @@ export class TaskService {
 		await this.checkProjectAssignment(body.projectId, user);
 
 		const createdTask = await entityManager.transaction(async (tx) => {
-			const saveRecursive = async (taskDto: CreateTaskDto, parentId: string | null): Promise<any> => {
+			const saveRecursive = async (taskDto: CreateTaskDto, parentId: string | null, parentTask?: TaskEntity): Promise<any> => {
+				const projId = taskDto.projectId || (parentTask ? parentTask.projectId : body.projectId);
+				const sTime = taskDto.startTime ? new Date(taskDto.startTime) : (parentTask ? parentTask.startTime : new Date(body.startTime!));
+				const eTime = taskDto.endTime ? new Date(taskDto.endTime) : (parentTask ? parentTask.endTime : new Date(body.endTime!));
+
 				const task = tx.create(TaskEntity, {
-					projectId: taskDto.projectId,
+					projectId: projId,
 					parentTaskId: parentId,
 					title: taskDto.title,
-					description: taskDto.description,
+					description: taskDto.description || "",
 					status: taskDto.status || TaskStatus.OPEN,
-					startTime: new Date(taskDto.startTime),
-					endTime: new Date(taskDto.endTime),
+					startTime: sTime,
+					endTime: eTime,
 					priority: taskDto.priority || TaskPriority.MEDIUM,
 					createdBy: user.id
 				});
@@ -115,14 +129,17 @@ export class TaskService {
 				const childResult: any[] = [];
 				if (taskDto.child && taskDto.child.length > 0) {
 					for (const childDto of taskDto.child) {
-						if (childDto.projectId !== taskDto.projectId) {
-							const childProject = await tx.findOne(ProjectEntity, { where: { id: childDto.projectId } });
-							if (!childProject) {
-								throw new NotFoundException(`Project not found for child task: ${childDto.title}`);
+						const childProjId = childDto.projectId || projId;
+						if (childProjId !== projId) {
+							if (childProjId) {
+								const childProject = await tx.findOne(ProjectEntity, { where: { id: childProjId } });
+								if (!childProject) {
+									throw new NotFoundException(`Project not found for child task: ${childDto.title}`);
+								}
+								await this.checkProjectAssignment(childProjId, user);
 							}
-							await this.checkProjectAssignment(childDto.projectId, user);
 						}
-						const savedChild = await saveRecursive(childDto, task.id);
+						const savedChild = await saveRecursive(childDto, task.id, task);
 						childResult.push(savedChild);
 					}
 				}
