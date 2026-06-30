@@ -184,14 +184,49 @@ export class TaskService {
 	}
 
 	async getTaskById(id: string, user: UserEntity) {
-		const task = await entityManager.findOne(TaskEntity, { where: { id } });
+		const task = await entityManager.findOne(TaskEntity, {
+			where: { id },
+			relations: {
+				taskAssignment: {
+					user: true
+				},
+				parentTask: {
+					taskAssignment: {
+						user: true
+					}
+				}
+			}
+		});
+
 		if (!task) {
 			throw new NotFoundException("Task not found");
 		}
+
 		if (task.projectId) {
 			await this.checkProjectAssignment(task.projectId, user);
 		}
-		return task;
+
+		const { parentTask, ...taskData } = task as any;
+
+		if (!task.parentTaskId) {
+			const childTasks = await entityManager.find(TaskEntity, {
+				where: { parentTaskId: task.id },
+				relations: {
+					taskAssignment: {
+						user: true
+					}
+				}
+			});
+			return {
+				...taskData,
+				child: childTasks
+			};
+		}
+
+		return {
+			...taskData,
+			parent: parentTask || null
+		};
 	}
 
 	async updateTask(id: string, body: UpdateTaskDto, user: UserEntity) {
