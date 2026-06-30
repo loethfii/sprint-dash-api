@@ -282,37 +282,107 @@ export class TaskService {
 	}
 
 	async updateTask(id: string, body: UpdateTaskDto, user: UserEntity) {
-		const task = await entityManager.findOne(TaskEntity, { where: { id } });
-		if (!task) {
-			throw new NotFoundException("Task not found");
-		}
-
-		if (task.projectId) {
-			await this.checkProjectAssignment(task.projectId, user);
-		}
-
-		if (body.projectId && body.projectId !== task.projectId) {
-			const project = await entityManager.findOne(ProjectEntity, { where: { id: body.projectId } });
-			if (!project) {
-				throw new NotFoundException("New project not found");
+		const updatedTask = await entityManager.transaction(async (tx) => {
+			const task = await tx.findOne(TaskEntity, { where: { id } });
+			if (!task) {
+				throw new NotFoundException("Task not found");
 			}
-			await this.checkProjectAssignment(body.projectId, user);
-			task.projectId = body.projectId;
-		}
 
-		if (body.parentTaskId !== undefined) {
-			task.parentTaskId = body.parentTaskId || null;
-		}
-		if (body.title !== undefined) task.title = body.title;
-		if (body.description !== undefined) task.description = body.description;
-		if (body.status !== undefined) task.status = body.status;
-		if (body.startTime !== undefined) task.startTime = new Date(body.startTime);
-		if (body.endTime !== undefined) task.endTime = new Date(body.endTime);
-		if (body.priority !== undefined) task.priority = body.priority;
+			if (task.projectId) {
+				await this.checkProjectAssignment(task.projectId, user);
+			}
 
-		await entityManager.save(TaskEntity, task);
+			if (body.projectId && body.projectId !== task.projectId) {
+				const project = await tx.findOne(ProjectEntity, { where: { id: body.projectId } });
+				if (!project) {
+					throw new NotFoundException("New project not found");
+				}
+				await this.checkProjectAssignment(body.projectId, user);
+				task.projectId = body.projectId;
+			}
+
+			if (body.parentTaskId !== undefined) {
+				task.parentTaskId = body.parentTaskId || null;
+			}
+			if (body.title !== undefined) task.title = body.title;
+			if (body.description !== undefined) task.description = body.description;
+			if (body.status !== undefined) task.status = body.status;
+			if (body.startTime !== undefined) task.startTime = new Date(body.startTime);
+			if (body.endTime !== undefined) task.endTime = new Date(body.endTime);
+			if (body.priority !== undefined) task.priority = body.priority;
+
+			await tx.save(TaskEntity, task);
+
+			const childResult: any[] = [];
+			if (body.child !== undefined) {
+				const deleteChildrenRecursive = async (parentId: string) => {
+					const children = await tx.find(TaskEntity, { where: { parentTaskId: parentId } });
+					for (const child of children) {
+						await deleteChildrenRecursive(child.id);
+						await tx.remove(TaskEntity, child);
+					}
+				};
+				await deleteChildrenRecursive(task.id);
+
+				const saveRecursive = async (taskDto: CreateTaskDto, parentId: string | null): Promise<any> => {
+					const childTask = tx.create(TaskEntity, {
+						projectId: taskDto.projectId,
+						parentTaskId: parentId,
+						title: taskDto.title,
+						description: taskDto.description,
+						status: taskDto.status || TaskStatus.OPEN,
+						startTime: taskDto.startTime ? new Date(taskDto.startTime) : undefined,
+						endTime: taskDto.endTime ? new Date(taskDto.endTime) : undefined,
+						priority: taskDto.priority || TaskPriority.MEDIUM,
+						createdBy: user.id
+					});
+
+					await tx.save(TaskEntity, childTask);
+
+					const nestedChildren: any[] = [];
+					if (taskDto.child && taskDto.child.length > 0) {
+						for (const childDto of taskDto.child) {
+							if (childDto.projectId !== taskDto.projectId) {
+								const childProject = await tx.findOne(ProjectEntity, { where: { id: childDto.projectId } });
+								if (!childProject) {
+									throw new NotFoundException(`Project not found for child task: ${childDto.title}`);
+								}
+								await this.checkProjectAssignment(childDto.projectId, user);
+							}
+							const savedChild = await saveRecursive(childDto, childTask.id);
+							nestedChildren.push(savedChild);
+						}
+					}
+
+					return {
+						...childTask,
+						child: nestedChildren
+					};
+				};
+
+				if (body.child.length > 0) {
+					for (const childDto of body.child) {
+						if (childDto.projectId !== task.projectId) {
+							const childProject = await tx.findOne(ProjectEntity, { where: { id: childDto.projectId } });
+							if (!childProject) {
+								throw new NotFoundException(`Project not found for child task: ${childDto.title}`);
+							}
+							await this.checkProjectAssignment(childDto.projectId, user);
+						}
+						const savedChild = await saveRecursive(childDto, task.id);
+						childResult.push(savedChild);
+					}
+				}
+			}
+
+			return {
+				...task,
+				child: body.child !== undefined ? childResult : undefined
+			};
+		});
+
 		await this.clearTaskTreeCache();
-		return task;
+		return updatedTask;
 	}
 
 	async deleteTask(id: string, user: UserEntity) {

@@ -81,6 +81,12 @@ export class UpdateTaskDto {
 	@IsOptional()
 	@IsEnum(TaskPriority, { message: "Invalid priority value" })
 	priority?: TaskPriority;
+
+	@IsOptional()
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreateTaskDto)
+	child?: CreateTaskDto[];
 }
 
 export class AssignUserDto {
