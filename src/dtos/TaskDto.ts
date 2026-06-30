@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional, IsEnum, IsDateString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsString, IsOptional, IsEnum, IsDateString, IsUUID, IsArray } from "class-validator";
 import { TaskStatus, TaskPriority } from "../enums";
 import { CommonQueryDTO } from "./CommonDto";
 
@@ -40,6 +40,10 @@ export class CreateTaskDto {
 	@IsOptional()
 	@IsEnum(TaskPriority, { message: "Invalid priority value" })
 	priority?: TaskPriority;
+
+	@IsOptional()
+	@IsArray()
+	child?: CreateTaskDto[];
 }
 
 export class UpdateTaskDto {

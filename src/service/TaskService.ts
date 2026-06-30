@@ -96,21 +96,48 @@ export class TaskService {
 
 		await this.checkProjectAssignment(body.projectId, user);
 
-		const task = entityManager.create(TaskEntity, {
-			projectId: body.projectId,
-			parentTaskId: body.parentTaskId || null,
-			title: body.title,
-			description: body.description,
-			status: body.status || TaskStatus.OPEN,
-			startTime: new Date(body.startTime),
-			endTime: new Date(body.endTime),
-			priority: body.priority || TaskPriority.MEDIUM,
-			createdBy: user.id
+		const createdTask = await entityManager.transaction(async (tx) => {
+			const saveRecursive = async (taskDto: CreateTaskDto, parentId: string | null): Promise<any> => {
+				const task = tx.create(TaskEntity, {
+					projectId: taskDto.projectId,
+					parentTaskId: parentId,
+					title: taskDto.title,
+					description: taskDto.description,
+					status: taskDto.status || TaskStatus.OPEN,
+					startTime: new Date(taskDto.startTime),
+					endTime: new Date(taskDto.endTime),
+					priority: taskDto.priority || TaskPriority.MEDIUM,
+					createdBy: user.id
+				});
+
+				await tx.save(TaskEntity, task);
+
+				const childResult: any[] = [];
+				if (taskDto.child && taskDto.child.length > 0) {
+					for (const childDto of taskDto.child) {
+						if (childDto.projectId !== taskDto.projectId) {
+							const childProject = await tx.findOne(ProjectEntity, { where: { id: childDto.projectId } });
+							if (!childProject) {
+								throw new NotFoundException(`Project not found for child task: ${childDto.title}`);
+							}
+							await this.checkProjectAssignment(childDto.projectId, user);
+						}
+						const savedChild = await saveRecursive(childDto, task.id);
+						childResult.push(savedChild);
+					}
+				}
+
+				return {
+					...task,
+					child: childResult
+				};
+			};
+
+			return await saveRecursive(body, body.parentTaskId || null);
 		});
 
-		await entityManager.save(TaskEntity, task);
 		await this.clearTaskTreeCache();
-		return task;
+		return createdTask;
 	}
 
 	private async clearTaskTreeCache() {
@@ -162,6 +189,9 @@ export class TaskService {
 				taskAssignment: {
 					user: true
 				}
+			},
+			order: {
+				createdAt: 'desc'
 			}
 		});
 		const childTasks = await entityManager.find(TaskEntity, {
@@ -175,10 +205,15 @@ export class TaskService {
 				}
 			}
 		});
-		const data = tasks.map(task => ({
-			...task,
-			child: childTasks.filter(child => child.parentTaskId === task.id)
-		}));
+		const buildTree = (task: any): any => {
+			const children = childTasks.filter(child => child.parentTaskId === task.id);
+			return {
+				...task,
+				child: children.map(child => buildTree(child))
+			};
+		};
+
+		const data = tasks.map(task => buildTree(task));
 		await setRedis(1, cacheKey, JSON.stringify(data));
 		return data;
 	}
