@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res, Auth, Validate, ValidateQuery } from "../decorators";
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, Res, Auth, Validate, ValidateQuery, Patch, Req } from "../decorators";
 import { Response } from "express";
 import { UserService } from "../service";
 import { ApiResponse } from "../utils";
 import { UserRole } from "../enums";
-import { CreateUserDto, UpdateUserDto, CommonQueryDTO, UserQuery } from "../dtos";
+import { CreateUserDto, UpdateUserDto, CommonQueryDTO, UserQuery, ChangePasswordDto } from "../dtos";
 
 @Controller("users")
 export class UserController {
@@ -48,6 +48,14 @@ export class UserController {
 	@Auth([UserRole.ADMIN])
 	async deleteUser(@Param("id") id: string, @Res() res: Response) {
 		const result = await this.userService.deleteUser(id);
+		ApiResponse.success(res, result);
+	}
+
+	@Patch('change-password')
+	@Auth()
+	@Validate(ChangePasswordDto)
+	async changePassword(@Req() req: any, @Body() body: ChangePasswordDto, @Res() res: Response) {
+		const result = await this.userService.changePassword(req.user.id, body);
 		ApiResponse.success(res, result);
 	}
 }

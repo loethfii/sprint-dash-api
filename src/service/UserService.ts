@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { UserEntity } from "../entities";
 import { entityManager } from "../types";
 import { BadRequestException, NotFoundException } from "../exceptions";
-import { CreateUserDto, UpdateUserDto, UserQuery } from "../dtos";
+import { CreateUserDto, UpdateUserDto, UserQuery, ChangePasswordDto } from "../dtos";
 
 export class UserService {
 	async getUsers() {
@@ -128,5 +128,26 @@ export class UserService {
 		}
 		await entityManager.softDelete(UserEntity, user.id);
 		return { message: "User successfully deleted" };
+	}
+
+	async changePassword(userId: string, body: ChangePasswordDto) {
+		const user = await entityManager.getRepository(UserEntity)
+			.createQueryBuilder("user")
+			.addSelect("user.passwordHash")
+			.where("user.id = :id", { id: userId })
+			.getOne();
+		if (!user) {
+			throw new NotFoundException("User not found");
+		}
+		if (body.password !== body.confirmPassword) {
+			throw new BadRequestException("New password and confirm password do not match");
+		}
+		const isPasswordValid = await bcrypt.compare(body.oldPassword, user.passwordHash);
+		if (!isPasswordValid) {
+			throw new BadRequestException("Invalid old password");
+		}
+		user.passwordHash = await bcrypt.hash(body.password, 10);
+		await entityManager.save(UserEntity, user);
+		return { message: "Password changed successfully" };
 	}
 }
