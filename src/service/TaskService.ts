@@ -3,7 +3,7 @@ import { TaskEntity, UserEntity, ProjectAssignmentEntity, ProjectEntity, TaskAss
 import { CreateTaskDto, QueryTaskDTO, UpdateTaskDto, AssignUserDto, UpdateTaskStatusDto, TaskTree } from "../dtos";
 import { UserRole, TaskStatus, TaskPriority } from "../enums";
 import { BadRequestException, ForbiddenException, NotFoundException } from "../exceptions";
-import { getRedis, setRedis, delRedis, getRedisClient } from "../utils";
+import { getRedis, setRedis, delRedis, getRedisClient, eventEmitter, EVENTS } from "../utils";
 import { IsNull, Not } from "typeorm";
 
 export class TaskService {
@@ -465,6 +465,7 @@ export class TaskService {
 			return { message: "User successfully assigned to task" };
 		});
 		await this.clearTaskTreeCache();
+		eventEmitter.emit(EVENTS.TASK_ASSIGNED, { taskId: id, recipientId: body.userId });
 		return result;
 	}
 

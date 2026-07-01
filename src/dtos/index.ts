@@ -3,4 +3,5 @@ export * from "./UserDto";
 export * from "./ProjectDto";
 export * from "./TaskDto";
 export * from "./CommonDto";
+export * from "./NotificationDto";
 
