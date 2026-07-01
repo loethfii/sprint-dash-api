@@ -313,6 +313,18 @@ export class TaskService {
 
 			await tx.save(TaskEntity, task);
 
+			if (body.status !== undefined) {
+				const propagateStatus = async (parentId: string, newStatus: TaskStatus) => {
+					const children = await tx.find(TaskEntity, { where: { parentTaskId: parentId } });
+					for (const child of children) {
+						child.status = newStatus;
+						await tx.save(TaskEntity, child);
+						await propagateStatus(child.id, newStatus);
+					}
+				};
+				await propagateStatus(task.id, body.status);
+			}
+
 			const childResult: any[] = [];
 			if (body.child !== undefined) {
 				const deleteChildrenRecursive = async (parentId: string) => {
@@ -432,7 +444,7 @@ export class TaskService {
 
 			if (existingAssignment) {
 				if (existingAssignment.userId === body.userId) {
-					throw new BadRequestException("User is already assigned to this task");
+					return { message: "Task assignment successfully switched to the new user" };
 				}
 				// Switch user / update existing assignment
 				existingAssignment.userId = body.userId;
@@ -481,17 +493,32 @@ export class TaskService {
 	}
 
 	async updateTaskStatus(id: string, body: UpdateTaskStatusDto, user: UserEntity) {
-		const task = await entityManager.findOne(TaskEntity, { where: { id } });
-		if (!task) {
-			throw new NotFoundException("Task not found");
-		}
-		if (task.projectId) {
-			await this.checkProjectAssignment(task.projectId, user);
-		}
+		const updatedTask = await entityManager.transaction(async (tx) => {
+			const task = await tx.findOne(TaskEntity, { where: { id } });
+			if (!task) {
+				throw new NotFoundException("Task not found");
+			}
+			if (task.projectId) {
+				await this.checkProjectAssignment(task.projectId, user);
+			}
 
-		task.status = body.status;
-		await entityManager.save(TaskEntity, task);
+			task.status = body.status;
+			await tx.save(TaskEntity, task);
+
+			const propagateStatus = async (parentId: string, newStatus: TaskStatus) => {
+				const children = await tx.find(TaskEntity, { where: { parentTaskId: parentId } });
+				for (const child of children) {
+					child.status = newStatus;
+					await tx.save(TaskEntity, child);
+					await propagateStatus(child.id, newStatus);
+				}
+			};
+			await propagateStatus(task.id, body.status);
+
+			return task;
+		});
+
 		await this.clearTaskTreeCache();
-		return task;
+		return updatedTask;
 	}
 }

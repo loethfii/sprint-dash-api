@@ -6,6 +6,7 @@ import {
 	AuthController,
 	ProjectController,
 	TaskController,
+	WidgetController,
 } from "./controllers";
 import { registerRoutes } from "./utils";
 import "reflect-metadata";
@@ -21,7 +22,7 @@ app.use(cors());
 
 registerRoutes(
 	app,
-	[UserController, RootController, AuthController, ProjectController, TaskController],
+	[UserController, RootController, AuthController, ProjectController, TaskController, WidgetController],
 	"/api/v1"
 );
 

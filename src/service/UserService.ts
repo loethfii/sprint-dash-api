@@ -60,13 +60,15 @@ export class UserService {
 		}
 
 		const passwordHash = await bcrypt.hash(body.password, 10);
+		const menuId = body.role === "admin" ? "0a58f456-43b8-4072-8c96-ad1e54632605" : "4c524510-48f9-47ee-853b-d95af5f1c2f4";
 		const user = entityManager.create(UserEntity, {
 			name: body.name,
 			username: body.username,
 			passwordHash,
 			email: body.email,
 			phoneNumber: body.phoneNumber,
-			role: body.role
+			role: body.role,
+			menu: { id: menuId } as any
 		});
 
 		await entityManager.save(UserEntity, user);
@@ -106,7 +108,11 @@ export class UserService {
 
 		if (body.name) user.name = body.name;
 		if (body.phoneNumber) user.phoneNumber = body.phoneNumber;
-		if (body.role) user.role = body.role;
+		if (body.role) {
+			user.role = body.role;
+			const menuId = body.role === "admin" ? "0a58f456-43b8-4072-8c96-ad1e54632605" : "4c524510-48f9-47ee-853b-d95af5f1c2f4";
+			user.menu = { id: menuId } as any;
+		}
 		if (body.password) {
 			user.passwordHash = await bcrypt.hash(body.password, 10);
 		}
