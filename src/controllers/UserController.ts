@@ -3,7 +3,7 @@ import { Response } from "express";
 import { UserService } from "../service";
 import { ApiResponse } from "../utils";
 import { UserRole } from "../enums";
-import { CreateUserDto, UpdateUserDto, CommonQueryDTO } from "../dtos";
+import { CreateUserDto, UpdateUserDto, CommonQueryDTO, UserQuery } from "../dtos";
 
 @Controller("users")
 export class UserController {
@@ -13,9 +13,10 @@ export class UserController {
 	}
 
 	@Get()
-	@Auth([UserRole.ADMIN])
+	// @Auth([UserRole.ADMIN, UserRole.MANAGER, Us])
+	@Auth()
 	@ValidateQuery(CommonQueryDTO)
-	async getAllUsers(@Query() query: CommonQueryDTO, @Res() res: Response) {
+	async getAllUsers(@Query() query: UserQuery, @Res() res: Response) {
 		const result = await this.userService.getAllUsers(query);
 		ApiResponse.success(res, result.data, { total: result.total, page: result.page, limit: result.limit });
 	}

@@ -3,8 +3,7 @@ import bcrypt from "bcryptjs";
 import { UserEntity } from "../entities";
 import { entityManager } from "../types";
 import { BadRequestException, NotFoundException } from "../exceptions";
-import { ApiResponse } from "../utils";
-import { CreateUserDto, UpdateUserDto, CommonQueryDTO } from "../dtos";
+import { CreateUserDto, UpdateUserDto, UserQuery } from "../dtos";
 
 export class UserService {
 	async getUsers() {
@@ -14,7 +13,7 @@ export class UserService {
 		return users;
 	}
 
-	async getAllUsers(query: CommonQueryDTO) {
+	async getAllUsers(query: UserQuery) {
 		const queryBuilder = entityManager.getRepository(UserEntity).createQueryBuilder("user");
 
 		if (query.keyword) {
@@ -22,6 +21,10 @@ export class UserService {
 				"(LOWER(user.name) LIKE LOWER(:keyword) OR LOWER(user.username) LIKE LOWER(:keyword) OR LOWER(user.email) LIKE LOWER(:keyword))",
 				{ keyword: `%${query.keyword}%` }
 			);
+		}
+
+		if (query.role) {
+			queryBuilder.andWhere("user.role = :role", { role: query.role });
 		}
 
 		const page = query.page || 1;

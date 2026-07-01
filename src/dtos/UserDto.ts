@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsString, IsEmail, IsOptional, IsEnum } from "class-validator";
 import { UserRole } from "../enums";
+import { CommonQueryDTO } from "./CommonDto";
 
 export class CreateUserDto {
 	@IsNotEmpty({ message: "Name is required" })
@@ -48,6 +49,12 @@ export class UpdateUserDto {
 	@IsString({ message: "Phone number must be a string" })
 	phoneNumber?: string;
 
+	@IsOptional()
+	@IsEnum(UserRole, { message: "Invalid role value" })
+	role?: UserRole;
+}
+
+export class UserQuery extends CommonQueryDTO {
 	@IsOptional()
 	@IsEnum(UserRole, { message: "Invalid role value" })
 	role?: UserRole;

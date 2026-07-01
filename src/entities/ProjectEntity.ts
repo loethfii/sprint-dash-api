@@ -1,7 +1,8 @@
-import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { BaseTableEntity } from "./BaseTableEntity";
 import { UserEntity } from "./UserEntity";
 import { ProjectPriority } from "../enums";
+import { ProjectAssignmentEntity } from "./ProjectAssignmentEntity";
 
 @Entity({ name: "projects" })
 export class ProjectEntity extends BaseTableEntity {
@@ -33,4 +34,7 @@ export class ProjectEntity extends BaseTableEntity {
 	@ManyToOne(() => UserEntity, { onDelete: "SET NULL", onUpdate: "SET NULL" })
 	@JoinColumn({ name: "created_by" })
 	creator!: UserEntity | null;
+
+	@OneToMany(() => ProjectAssignmentEntity, (assignment) => assignment.project)
+	projectAssignments?: ProjectAssignmentEntity[];
 }

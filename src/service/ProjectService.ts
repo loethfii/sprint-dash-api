@@ -13,6 +13,8 @@ export class ProjectService {
 
 		// Relations
 		queryBuilder.leftJoinAndSelect("project.creator", "creator");
+		queryBuilder.leftJoinAndSelect("project.projectAssignments", "pa")
+		queryBuilder.leftJoinAndSelect("pa.manager", "manager");
 
 		// Search
 		if (query.keyword) {

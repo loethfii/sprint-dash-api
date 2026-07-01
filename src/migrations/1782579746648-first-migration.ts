@@ -4,6 +4,12 @@ export class FirstMigration1782579746648 implements MigrationInterface {
     name = 'FirstMigration1782579746648'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`CREATE TYPE "public"."users_role_enum" AS ENUM('admin', 'manager', 'staff')`);
+        await queryRunner.query(`CREATE TYPE "public"."projects_priority_enum" AS ENUM('low', 'medium', 'high', 'critical')`);
+        await queryRunner.query(`CREATE TYPE "public"."tasks_status_enum" AS ENUM('open', 'working', 'closed', 'overdue')`);
+        await queryRunner.query(`CREATE TYPE "public"."tasks_priority_enum" AS ENUM('low', 'medium', 'high', 'critical')`);
+        await queryRunner.query(`CREATE TYPE "public"."email_notifications_type_enum" AS ENUM('task_assigned', 'overdue_warning')`);
+        await queryRunner.query(`CREATE TYPE "public"."email_notifications_status_enum" AS ENUM('pending', 'sent', 'failed')`);
         await queryRunner.query(`CREATE TABLE "users" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT '2026-06-27T17:02:28.250Z', "updated_at" TIMESTAMP NOT NULL DEFAULT '2026-06-27T17:02:28.250Z', "deleted_at" TIMESTAMP, "metadata" jsonb, "name" character varying(255) NOT NULL, "username" character varying(255) NOT NULL, "password_hash" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "phone_number" character varying(50), "role" "public"."users_role_enum" NOT NULL DEFAULT 'staff', CONSTRAINT "UQ_fe0bb3f6520ee0469504521e710" UNIQUE ("username"), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "projects" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT '2026-06-27T17:02:28.250Z', "updated_at" TIMESTAMP NOT NULL DEFAULT '2026-06-27T17:02:28.250Z', "deleted_at" TIMESTAMP, "metadata" jsonb, "project_name" character varying(255) NOT NULL, "start_date" date NOT NULL, "end_date" date NOT NULL, "priority" "public"."projects_priority_enum" NOT NULL DEFAULT 'medium', "created_by" uuid, CONSTRAINT "PK_6271df0a7aed1d6c0691ce6ac50" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "tasks" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT '2026-06-27T17:02:28.250Z', "updated_at" TIMESTAMP NOT NULL DEFAULT '2026-06-27T17:02:28.250Z', "deleted_at" TIMESTAMP, "metadata" jsonb, "project_id" uuid, "parent_task_id" uuid, "title" character varying(255) NOT NULL, "description" text NOT NULL, "status" "public"."tasks_status_enum" NOT NULL DEFAULT 'open', "start_time" TIMESTAMP NOT NULL, "end_time" TIMESTAMP NOT NULL, "priority" "public"."tasks_priority_enum" NOT NULL DEFAULT 'medium', "created_by" uuid, CONSTRAINT "PK_8d12ff38fcc62aaba2cab748772" PRIMARY KEY ("id"))`);
@@ -41,6 +47,12 @@ export class FirstMigration1782579746648 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "tasks"`);
         await queryRunner.query(`DROP TABLE "projects"`);
         await queryRunner.query(`DROP TABLE "users"`);
+        await queryRunner.query(`DROP TYPE "public"."email_notifications_status_enum"`);
+        await queryRunner.query(`DROP TYPE "public"."email_notifications_type_enum"`);
+        await queryRunner.query(`DROP TYPE "public"."tasks_priority_enum"`);
+        await queryRunner.query(`DROP TYPE "public"."tasks_status_enum"`);
+        await queryRunner.query(`DROP TYPE "public"."projects_priority_enum"`);
+        await queryRunner.query(`DROP TYPE "public"."users_role_enum"`);
     }
 
 }
