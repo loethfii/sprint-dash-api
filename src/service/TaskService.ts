@@ -5,6 +5,7 @@ import { UserRole, TaskStatus, TaskPriority } from "../enums";
 import { BadRequestException, ForbiddenException, NotFoundException } from "../exceptions";
 import { getRedis, setRedis, delRedis, getRedisClient, eventEmitter, EVENTS } from "../utils";
 import { IsNull, Not } from "typeorm";
+import { WorkerService } from "./WorkerService";
 
 export class TaskService {
 	private async checkProjectAssignment(projectId: string, user: UserEntity) {
@@ -154,6 +155,21 @@ export class TaskService {
 		});
 
 		await this.clearTaskTreeCache();
+
+		// Schedule RabbitMQ check for overdue task status
+		const workerService = new WorkerService();
+		const scheduleRecursive = async (task: any) => {
+			if (task.id && task.endTime) {
+				await workerService.scheduleTaskDueCheck(task.id, new Date(task.endTime));
+			}
+			if (task.child && task.child.length > 0) {
+				for (const child of task.child) {
+					await scheduleRecursive(child);
+				}
+			}
+		};
+		await scheduleRecursive(createdTask);
+
 		return createdTask;
 	}
 
@@ -394,6 +410,21 @@ export class TaskService {
 		});
 
 		await this.clearTaskTreeCache();
+
+		// Schedule RabbitMQ check for overdue task status
+		const workerService = new WorkerService();
+		const scheduleRecursive = async (task: any) => {
+			if (task.id && task.endTime) {
+				await workerService.scheduleTaskDueCheck(task.id, new Date(task.endTime));
+			}
+			if (task.child && task.child.length > 0) {
+				for (const child of task.child) {
+					await scheduleRecursive(child);
+				}
+			}
+		};
+		await scheduleRecursive(updatedTask);
+
 		return updatedTask;
 	}
 
