@@ -107,3 +107,15 @@ The task due date notification/automated overdue updates are handled asynchronou
 API Collections and environment files have been prepared and can be directly imported into Postman:
 - Collection: **`postman collection/Sprint Dash.postman_collection.json`**
 - Environment: **`postman collection/Sprint Dash local.postman_environment.json`**
+
+---
+
+## 👥 Mock Users
+
+For testing and demonstration purposes, you can log in using the following pre-configured user credentials:
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@gmail.com` | `lS5px` |
+| **Manager** | `manager@gmail.com` | `HGTtD` |
+| **Staff** | `staff@gmail.com` | `YmIiB` |
