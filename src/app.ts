@@ -1,5 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 import {
 	UserController,
 	RootController,
@@ -8,6 +10,7 @@ import {
 	TaskController,
 	WidgetController,
 	NotificationController,
+	WorkerController,
 } from "./controllers";
 import { registerRoutes } from "./utils";
 import "reflect-metadata";
@@ -23,7 +26,7 @@ app.use(cors());
 
 registerRoutes(
 	app,
-	[UserController, RootController, AuthController, ProjectController, TaskController, WidgetController, NotificationController],
+	[UserController, RootController, AuthController, ProjectController, TaskController, WidgetController, NotificationController, WorkerController],
 	"/api/v1"
 );
 
@@ -31,16 +34,23 @@ registerRoutes(
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 	const statusCode = err instanceof HttpException ? err.statusCode : 500;
 	const message = err.message || "Internal Server Error";
-	
+
 	res.status(statusCode).json({
 		error: message,
 		timestamp: new Date().toISOString(),
 	});
 });
 
+import { WorkerService } from "./service";
+
 AppDataSource.initialize()
 	.then(() => {
 		console.log("Data Source has been initialized!");
+		
+		// Initialize RabbitMQ worker subscriber
+		const workerService = new WorkerService();
+		workerService.initConsumer();
+
 		app.listen(port, host, () => {
 			console.log(`Server is running on http://${host}:${port}`);
 		});

@@ -4,3 +4,4 @@ export * from "./ProjectService";
 export * from "./TaskService";
 export * from "./WidgetService";
 export * from "./NotificationService";
+export * from "./WorkerService"

@@ -5,3 +5,4 @@ export * from "./ProjectController";
 export * from "./TaskController";
 export * from "./WidgetController";
 export * from "./NotificationController";
+export * from "./WorkerController"
