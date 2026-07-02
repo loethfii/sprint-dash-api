@@ -1,7 +1,7 @@
 {
-	"name": "express-typescript-oop-bolierplate",
+	"name": "sprint-dash-api",
 	"version": "1.0.0",
-	"description": "A boilerplate for Express.js with TypeScript and OOP",
+	"description": "A productivity dashboard for a team of developers that allows project managers to create projects and tasks, assign them to developers, and track their progress.",
 	"main": "src/app.js",
 	"scripts": {
 		"start": "node dist/app.js",
