@@ -83,6 +83,7 @@ docker-compose up --build
 
 ```
 sprint-dash-api/
+├── postman collection/   # Postman Collections and Environment files
 ├── src/
 │   ├── controllers/      # API Controllers and Route Handlers
 │   ├── decorators/       # Custom decorators (Auth, Routing, validation)
@@ -91,12 +92,15 @@ sprint-dash-api/
 │   ├── enums/            # Common Enumerations & constants
 │   ├── exceptions/       # Custom HTTP Exception classes
 │   ├── middlewares/      # Express middle-tier handlers (Auth check)
+│   ├── migrations/       # TypeORM database migration files
 │   ├── service/          # Application services and business logic
+│   ├── types/            # TypeScript Type definitions (EntityManager, etc.)
 │   ├── utils/            # Shared utilities (Redis, Event Emitter, etc.)
 │   └── app.ts            # Main application bootstrap and Express configuration
 ├── dist/                 # Transpiled JavaScript production build output
 ├── Dockerfile            # Multi-stage production Docker image configuration
 ├── docker-compose.yml    # Docker Compose orchestration configurations
+├── .env.example          # Template configuration file for env variables
 ├── package.json          # Dependencies manifest and execution scripts
 └── tsconfig.json         # TypeScript configuration
 ```
